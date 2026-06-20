@@ -22,7 +22,7 @@ use trouble_host::prelude::*;
 // ====================================================
 // We use a global Atomic variable so the BLE task can write to it,
 // and the Motor task can read from it simultaneously and safely.
-static TARGET_DUTY: AtomicU8 = AtomicU8::new(10);
+static TARGET_DUTY: AtomicU8 = AtomicU8::new(80);
 
 #[gatt_server]
 struct FluesterServer {
@@ -120,8 +120,8 @@ async fn main(_spawner: Spawner) -> ! {
 
     // TASK 1: The Motor Slew Rate Limiter
     let motor_task = async {
-        let mut current_duty = 10u8;
-        let safe_step = 5u8; // Maximum change allowed per 250ms interval
+        let mut current_duty = 0u8; // only init value, no controll here
+        let safe_step = 1u8; // Maximum change allowed per 250ms interval
 
         loop {
             // Read the target safely from the atomic variable
@@ -144,7 +144,7 @@ async fn main(_spawner: Spawner) -> ! {
                 esp_println::println!("Motor ramping... current duty: {}%", current_duty);
             }
 
-            Timer::after(Duration::from_millis(250)).await;
+            Timer::after(Duration::from_millis(50)).await;
         }
     };
 
